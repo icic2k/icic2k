@@ -108,44 +108,16 @@ function Show-Menu {
 }
 
                 '4' {
-                    Write-Host "`nDownloading DWAgent..." `
-                        -ForegroundColor Cyan
+    $zipFile = Join-Path $env:TEMP 'dw.zip'
 
-                    $zip = Download-File `
-                        -Url 'https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x86.zip' `
-                        -Name 'dw.zip'
+    curl.exe -L "https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x86.zip" -o $zipFile
 
-                    $folder = Join-Path $workDir 'DWAgent'
+    tar -xf $zipFile -C $env:TEMP
 
-                    New-Item -ItemType Directory `
-                        -Path $folder -Force |
-                        Out-Null
+    Start-Process "$env:TEMP\dwagent_x86.exe"
 
-                    Expand-Archive -LiteralPath $zip `
-                        -DestinationPath $folder -Force
-
-                    $exe = Get-ChildItem `
-                        -LiteralPath $folder `
-                        -Filter 'dwagent_x86.exe' `
-                        -File -Recurse |
-                        Select-Object -First 1
-
-                    if ($exe) {
-                        Write-Host "DWAgent extracted successfully." `
-                            -ForegroundColor Green
-
-                        Write-Host "Open the installer and enter your DWAgent installation code." `
-                            -ForegroundColor Yellow
-
-                        Open-DownloadedFile -Path $exe.FullName
-                    }
-                    else {
-                        Write-Host "DWAgent executable not found." `
-                            -ForegroundColor Red
-                    }
-
-                    Pause-Menu
-                }
+    Pause-Menu
+}
 
                 '0' {
                     Write-Host "`nExiting Any Tool..." `
