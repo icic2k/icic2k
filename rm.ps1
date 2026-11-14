@@ -121,7 +121,7 @@ function Show-Menu {
     }
 
     Pause-Menu
-}
+
 }
 
                 '0' {
