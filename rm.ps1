@@ -140,6 +140,82 @@ Write-Host "`n=====================================" -ForegroundColor Cyan
 
 }
 
+
+'5' {
+    Write-Host "`n==========================================" -ForegroundColor Cyan
+    Write-Host "  Checking & Removing WebSvc / DWAgent" -ForegroundColor Cyan
+    Write-Host "==========================================" -ForegroundColor Cyan
+
+    # --- STEP 1: CHECK CURRENT STATUS ---
+    Write-Host "`n[1/4] Checking current registry entries & services..." -ForegroundColor Yellow
+
+    reg.exe query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v DWAgentMon 2>$null
+    reg.exe query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DWAgent" 2>$null
+    reg.exe query "HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WebSvc" 2>$null
+
+    $services = Get-CimInstance Win32_Service | Where-Object {
+        $_.Name -match 'WebSvc|DWAgent' -or $_.DisplayName -match 'WebSvc|DWAgent'
+    }
+
+    if ($services) {
+        $services | Select-Object Name, State, StartMode, PathName | Format-List
+    } else {
+        Write-Host "No active WebSvc or DWAgent services found." -ForegroundColor Gray
+    }
+
+    # --- STEP 2: STOP PROCESSES & DELETE SERVICES ---
+    Write-Host "`n[2/4] Stopping processes and removing services..." -ForegroundColor Yellow
+
+    taskkill.exe /f /im WebSvc.exe 2>$null | Out-Null
+    taskkill.exe /f /im dwagent.exe 2>$null | Out-Null
+    taskkill.exe /f /im dwagsvc.exe 2>$null | Out-Null
+
+    if ($services) {
+        foreach ($svc in $services) {
+            Write-Host "Stopping and deleting service: $($svc.Name)" -ForegroundColor Red
+            sc.exe stop $svc.Name 2>$null | Out-Null
+            sc.exe delete $svc.Name 2>$null | Out-Null
+        }
+    }
+
+    # --- STEP 3: DELETE REGISTRY ENTRIES ---
+    Write-Host "`n[3/4] Removing registry entries..." -ForegroundColor Yellow
+
+    reg.exe delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" /v DWAgentMon /f 2>$null | Out-Null
+    reg.exe delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\DWAgent" /f 2>$null | Out-Null
+    reg.exe delete "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\WebSvc" /f 2>$null | Out-Null
+    Write-Host "Registry cleanup attempted." -ForegroundColor Green
+
+    # --- STEP 4: TAKE OWNERSHIP & DELETE FOLDERS ---
+    Write-Host "`n[4/4] Taking ownership and deleting installation folders..." -ForegroundColor Yellow
+
+    $folders = @(
+        "C:\Program Files\WebSvc",
+        "C:\Program Files\DWAgent",
+        "C:\Program Files (x86)\WebSvc",
+        "C:\Program Files (x86)\DWAgent"
+    )
+
+    foreach ($folder in $folders) {
+        if (Test-Path $folder) {
+            Write-Host "Removing folder: $folder" -ForegroundColor Red
+            takeown.exe /f "$folder" /r /d y | Out-Null
+            icacls.exe "$folder" /grant administrators:F /t | Out-Null
+            Remove-Item -Path "$folder" -Recurse -Force -ErrorAction SilentlyContinue
+            
+            if (-not (Test-Path $folder)) {
+                Write-Host "Successfully deleted: $folder" -ForegroundColor Green
+            } else {
+                Write-Host "Failed to fully delete (may need reboot): $folder" -ForegroundColor Red
+            }
+        }
+    }
+
+    Write-Host "`nCleanup complete!" -ForegroundColor Cyan
+    Pause-Menu
+}
+
+
                 '0' {
                     Write-Host "`nExiting Any Tool..." `
                         -ForegroundColor Cyan
