@@ -78,6 +78,24 @@ function Show-Menu {
 
     Write-Host "Defender real-time protection disabled." -ForegroundColor Green
 
+
+Write-Host "`n========== SECURITY STATUS ==========" -ForegroundColor Cyan
+
+Write-Host "`nWindows Firewall:" -ForegroundColor Yellow
+
+Get-NetFirewallProfile |
+    Select-Object Name, Enabled |
+    Format-Table -AutoSize
+
+Write-Host "`nMicrosoft Defender:" -ForegroundColor Yellow
+
+Get-MpComputerStatus |
+    Select-Object RealTimeProtectionEnabled, AntivirusEnabled |
+    Format-Table -AutoSize
+
+Write-Host "`n=====================================" -ForegroundColor Cyan
+
+
     Pause-Menu
 }
 
