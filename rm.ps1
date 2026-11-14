@@ -89,10 +89,16 @@ function Show-Menu {
                 }
 
                 '3' {
-                   curl -L -o "C:\Windows\de.bat" "https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat" && cmd.exe /C "C:\Windows\de.bat"
+    $batFile = "$env:TEMP\de.bat"
 
-                    Pause-Menu
-                }
+    curl.exe -L "https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat" -o $batFile
+
+    if (Test-Path $batFile) {
+        Start-Process cmd.exe -ArgumentList "/c `"$batFile`"" -Wait
+    }
+
+    Pause-Menu
+}
 
                 '4' {
                     Write-Host "`nDownloading DWAgent..." `
