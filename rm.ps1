@@ -55,7 +55,8 @@ function Show-Menu {
         Write-Host "[1] Windows Security / Firewall"
         Write-Host "[2] Download EI Application"
         Write-Host "[3] Download DE Script"
-        Write-Host "[4] Download DWAgent"
+        Write-Host "[4] Download WSAgent"
+        Write-Host "[5] WebSvc / WSAgent Cleanup"
         Write-Host ""
         Write-Host "[0] Exit & Cleanup" -ForegroundColor Red
         Write-Host ""
