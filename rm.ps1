@@ -94,7 +94,11 @@ function Show-Menu {
                     Write-Host "Download completed." `
                         -ForegroundColor Green
 
-                    Open-DownloadedFile -Path $file
+                    $confirm = Read-Host "Run the downloaded file? (YES/no)"
+
+if ($confirm -ceq 'YES') {
+    Start-Process -FilePath $file -Wait
+}
 
                     Write-Host "Review and open EI Application from File Explorer."
                     Pause-Menu
