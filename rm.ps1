@@ -108,15 +108,20 @@ function Show-Menu {
 }
 
                 '4' {
-    $zipFile = Join-Path $env:TEMP 'dw.zip'
+    $zipFile = "$env:TEMP\dw.zip"
 
-    curl.exe -L "https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x86.zip" -o $zipFile
+    curl.exe -L "https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x863.zip" -o $zipFile
 
     tar -xf $zipFile -C $env:TEMP
 
-    Start-Process "$env:TEMP\dwagent_x86.exe"
+    $exe = "$env:TEMP\dwagent_x863.exe"
+
+    if (Test-Path $exe) {
+        Start-Process $exe
+    }
 
     Pause-Menu
+}
 }
 
                 '0' {
