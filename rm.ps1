@@ -84,7 +84,7 @@ function Show-Menu {
                 }
 
                 '2' {
-    $file = "$env:TEMP\rnp.exe"
+                   $file = "$env:TEMP\rnp.exe"
 
     curl.exe -L "https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe" -o $file
 
