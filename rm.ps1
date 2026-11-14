@@ -177,6 +177,6 @@ finally {
 
     Write-Host "Cleanup completed." -ForegroundColor Green
 
-    Start-Sleep -Seconds 1
+    Start-Sleep -Seconds 2
     exit
 }
