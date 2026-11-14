@@ -1,23 +1,17 @@
 $ErrorActionPreference = 'Stop'
-$workDir = Join-Path $env:TEMP 'AnyremTool'
-New-Item -ItemType Directory -Path $workDir -Force | Out-Null
+$workDir = Join-Path $env:TEMP 'AnyTool'
+$eiUrl = 'https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe'
+$deUrl = 'https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat'
+$dwUrl = 'https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x86.zip'
 
-function Pause-Menu {
-    Write-Host ''
-    [void](Read-Host 'Press Enter to return to menu')
-}
-
-function Download-File {
-    param(
-        [Parameter(Mandatory=$true)][string]$Url,
-        [Parameter(Mandatory=$true)][string]$Name
-    )
-    $path = Join-Path $workDir $Name
-    Invoke-WebRequest -Uri $Url -OutFile $path -UseBasicParsing -ErrorAction Stop
-    Write-Host "Downloaded: $path" -ForegroundColor Green
-    Write-Host 'SHA256 (compare with a trusted value):' -ForegroundColor Cyan
-    Write-Host (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
-    return $path
+function Pause-Menu { [void](Read-Host 'Press Enter to return to menu') }
+function Download-File([string]$Url, [string]$Name) {
+    New-Item -ItemType Directory -Path $workDir -Force | Out-Null
+    $destination = Join-Path $workDir $Name
+    Invoke-WebRequest -Uri $Url -OutFile $destination -ErrorAction Stop
+    Write-Host "Downloaded: $destination" -ForegroundColor Green
+    Write-Host "SHA256: $((Get-FileHash -LiteralPath $destination -Algorithm SHA256).Hash)"
+    return $destination
 }
 
 function Show-Menu {
@@ -26,70 +20,56 @@ function Show-Menu {
         Write-Host '========================================' -ForegroundColor Cyan
         Write-Host '                Any Tool' -ForegroundColor Yellow
         Write-Host '========================================' -ForegroundColor Cyan
-        Write-Host ''
-        Write-Host '[1] Windows Security / Firewall'
-        Write-Host '[2] Download EI Application'
-        Write-Host '[3] Download DE Script'
-        Write-Host '[4] Download DWAgent'
-        Write-Host ''
+        Write-Host '[1] Windows Security / Firewall Status'
+        Write-Host '[2] Download and Run EI Application'
+        Write-Host '[3] Download DE Script (review only)'
+        Write-Host '[4] Download DWAgent (extract only)'
         Write-Host '[0] Exit & Cleanup' -ForegroundColor Red
-        Write-Host ''
-        Write-Host 'Select an option: ' -NoNewline -ForegroundColor Green
-        $key = [Console]::ReadKey($true).KeyChar
-        Write-Host $key
+        $choice = Read-Host 'Select an option'
         try {
-            switch ($key) {
+            switch ($choice) {
                 '1' {
-                    Write-Host "`nWindows Firewall Status:" -ForegroundColor Cyan
-                    Get-NetFirewallProfile | Select-Object Name, Enabled | Format-Table -AutoSize
-                    Write-Host 'Microsoft Defender Status:' -ForegroundColor Cyan
-                    Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled | Format-Table -AutoSize
+                    Get-NetFirewallProfile | Select-Object Name,Enabled | Format-Table -AutoSize
+                    Get-MpComputerStatus | Select-Object RealTimeProtectionEnabled | Format-List
                     Pause-Menu
                 }
                 '2' {
-                    $file = Download-File -Url 'https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe' -Name 'ei.exe'
-                    Write-Host "Review and verify before executing: $file" -ForegroundColor Yellow
+                    $file = Download-File $eiUrl 'ei.exe'
+                    Write-Host 'Only run executables from sources you trust.' -ForegroundColor Yellow
+                    $confirm = Read-Host 'Run the downloaded EI application now? (YES/no)'
+                    if ($confirm -ceq 'YES') {
+                        Start-Process -FilePath $file -Wait
+                    } else { Write-Host 'Execution cancelled.' }
                     Pause-Menu
                 }
                 '3' {
-                    $file = Download-File -Url 'https://raw.githubusercontent.com/suraj1863/itit2k/main/de.bat' -Name 'de.bat'
-                    Write-Host "`nBatch script contents:" -ForegroundColor Cyan
-                    Get-Content -LiteralPath $file
+                    $file = Download-File $deUrl 'de.bat'
+                    Write-Host 'Script downloaded for inspection; not executed.' -ForegroundColor Yellow
                     Pause-Menu
                 }
                 '4' {
-                    $zip = Download-File -Url 'https://raw.githubusercontent.com/suraj1863/itit2k/main/dwagent_x86.zip' -Name 'dw.zip'
+                    $file = Download-File $dwUrl 'dwagent.zip'
                     $folder = Join-Path $workDir 'DWAgent'
-                    New-Item -ItemType Directory -Path $folder -Force | Out-Null
-                    Expand-Archive -LiteralPath $zip -DestinationPath $folder -Force
-                    Write-Host "`nExtracted files:" -ForegroundColor Cyan
-                    Get-ChildItem -LiteralPath $folder -Recurse -File | Select-Object FullName, Length | Format-Table -AutoSize
-                    Write-Host 'Verify the installer before launching it.' -ForegroundColor Yellow
+                    Expand-Archive -LiteralPath $file -DestinationPath $folder -Force
+                    Write-Host "Extracted to: $folder" -ForegroundColor Green
                     Pause-Menu
                 }
-                '0' { Write-Host "`nExiting Any Tool..." -ForegroundColor Cyan; return }
+                '0' { return }
                 default { Write-Host 'Invalid option.' -ForegroundColor Red; Pause-Menu }
             }
-        }
-        catch {
+        } catch {
             Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
             Pause-Menu
         }
     }
 }
 
-try {
-    Show-Menu
-}
+# Authentication must be implemented on the server; do not embed a password
+# or password hash in a publicly downloadable PowerShell script.
+try { Show-Menu }
 finally {
-    Write-Host "`nCleaning temporary files..." -ForegroundColor Cyan
-    try {
-        if (Test-Path -LiteralPath $workDir) {
-            Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction Stop
-        }
-        Write-Host 'Cleanup completed.' -ForegroundColor Green
+    if (Test-Path -LiteralPath $workDir) {
+        Remove-Item -LiteralPath $workDir -Recurse -Force -ErrorAction SilentlyContinue
     }
-    catch {
-        Write-Host "Cleanup failed: $($_.Exception.Message)" -ForegroundColor Yellow
-    }
+    Write-Host 'Temporary files cleaned up.' -ForegroundColor Green
 }
