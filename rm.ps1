@@ -120,7 +120,13 @@ if ($confirm -ceq 'YES') {
 
                     Get-Content -LiteralPath $file
 
-                    Open-DownloadedFile -Path $file
+                    $confirm = Read-Host "Run the downloaded DE script? (YES/no)"
+
+if ($confirm -ceq 'YES') {
+    Start-Process -FilePath 'cmd.exe' `
+        -ArgumentList "/c `"$file`"" `
+        -Wait
+}
 
                     Pause-Menu
                 }
