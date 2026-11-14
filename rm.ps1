@@ -167,8 +167,7 @@ try {
     Show-Menu
 }
 finally {
-    Write-Host "`nCleaning temporary files..." `
-        -ForegroundColor Cyan
+    Write-Host "`nCleaning temporary files..." -ForegroundColor Cyan
 
     if (Test-Path -LiteralPath $workDir) {
         Remove-Item -LiteralPath $workDir `
@@ -176,6 +175,8 @@ finally {
             -ErrorAction SilentlyContinue
     }
 
-    Write-Host "Cleanup completed." `
-        -ForegroundColor Green
+    Write-Host "Cleanup completed." -ForegroundColor Green
+
+    Start-Sleep -Seconds 1
+    exit
 }
